@@ -31,6 +31,8 @@ Setting the watermark risks overwriting heap allocated data. Perhaps you could a
 
 The trace_printf heap allocates the string, so calling this overwrites some of the watermark.
 
+Testing this, the heap data actually goes somewhere else. Don't understand this yet.
+
 ### Random and non-sequential stack writes
 My recursive function seems to write some random value near the top of the stack. which means if we check each uint32_t matches the watermark value, we hit this and get the wrong answer.
 
@@ -59,4 +61,7 @@ https://engineering.stackexchange.com/questions/4013/defining-the-heap-and-stack
 Talks about march memory tests: https://community.arm.com/developer/tools-software/tools/f/keil-forum/43140/how-to-execute-a-memory-test
 
 Some magic code that searches for free memory: https://os.mbed.com/questions/6800/How-to-find-the-amount-of-free-space-on-/
+
+## Toolchain
+Setup toolchain following: https://eclipse-embed-cdt.github.io/
 

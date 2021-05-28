@@ -40,6 +40,14 @@ int main (int argc, char* argv[])
 	  *stack-- = 0xDEAD0000u; // in steps of uint32s, which is the size of the pointer type
   }
 
+  /*
+  uint32_t* heap1 = (uint32_t*) malloc(4);
+  uint32_t* heap2 = (uint32_t*) malloc(4);
+  *heap1 = 0x41414141;
+  trace_printf("Heap var here %u is value %u", heap1, *heap1);
+  trace_printf("Heap var here %u is value %u", heap2, *heap2);
+  */
+
   // Do something expensive
   cLovesRecursion(1); // random number dropped in stack at 0x20000222
 
@@ -57,9 +65,6 @@ int main (int argc, char* argv[])
 
       if (lowWord != 0xDEAD0000 && highWord != 0xDEAD0000)
 	  {
-			// Note that printf has quite a large stack allocation, and allocates to the heap too
-			// We would need to reset after using this.
-	        trace_printf("+ ADDR is %u, VALUE is %u\n", searchStackPointer, *searchStackPointer);
 		    break;
 	  }
 	  *searchStackPointer++; // We have to walk from the end of the stack up to the top
@@ -69,6 +74,8 @@ int main (int argc, char* argv[])
   uint32_t searchUsagePercentage = ((STACK_STOP - (uint32_t)searchStackPointer) * 100)
 				  / (STACK_STOP - STACK_START);
 
+
+
   // Reset the stack
 
   // Recalculate
@@ -76,6 +83,9 @@ int main (int argc, char* argv[])
   // Report back
 
   // These messages show near the end of the stack, we've done some heap allocation :o
+  // Note that printf has quite a large stack allocation, and allocates to the heap too
+  // We would need to reset after using this.
+  trace_printf("+ ADDR is %u, VALUE is %u\n", searchStackPointer, *searchStackPointer);
   trace_printf ("SP read usage %u percent\n", usagePercentage);
   trace_printf ("Calc usage    %u percent\n", searchUsagePercentage);
   trace_printf ("-----END-----\n");
