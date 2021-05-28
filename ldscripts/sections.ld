@@ -40,6 +40,9 @@ __stack = ORIGIN(RAM) + LENGTH(RAM);
 
 _estack = __stack; 	/* STM specific definition */
 
+_mystackstart = ORIGIN(RAM);
+_mystacklength = LENGTH(RAM);
+
 /*
  * Default stack sizes.
  * These are used by the startup in order to allocate stacks 

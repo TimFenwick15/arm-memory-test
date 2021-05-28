@@ -9,9 +9,6 @@
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
-#define STACK_START 0x20000000UL
-#define STACK_STOP  0x20005000UL
-
 #define STACK_2_PERCENT     50
 #define STACK_20_PERCENT   500
 #define STACK_80_PERCENT  2000
@@ -29,13 +26,18 @@ int cLovesRecursion(int n)
 
 int main (int argc, char* argv[])
 {
+  // Get the current stack pointer
   volatile uint32_t stackPointer;
   __ASM volatile ("mov %0, sp" : "=r" (stackPointer) );
-
   volatile unsigned int* stack = (unsigned int*) stackPointer;
 
+  // Get the memory start and length
+  extern unsigned int _mystackstart, _mystacklength;
+  uint32_t stackStart = (uint32_t)((uint32_t*)&_mystackstart);
+  uint32_t stackLength = (uint32_t)((uint32_t*)&_mystacklength);
+
   // Initialise the stack to 0xDEAD0000
-  while (stack >= (unsigned int*) STACK_START)
+  while (stack >= (unsigned int*) stackStart)
   {
 	  *stack-- = 0xDEAD0000u; // in steps of uint32s, which is the size of the pointer type
   }
@@ -54,10 +56,10 @@ int main (int argc, char* argv[])
   // Calculate stack usage
   __ASM volatile ("mov %0, sp" : "=r" (stackPointer) );
 
-  uint32_t usagePercentage = ((STACK_STOP - stackPointer) * 100)
-		  / (STACK_STOP - STACK_START);
+  uint32_t usagePercentage = ((stackStart + stackLength - stackPointer) * 100)
+		  / stackLength;
 
-  volatile uint64_t* searchStackPointer = (uint64_t*)STACK_START;
+  volatile uint64_t* searchStackPointer = (uint64_t*)stackStart;
   do
   {
 	  uint32_t lowWord = (*searchStackPointer) & 0xFFFFFFFF;
@@ -69,12 +71,10 @@ int main (int argc, char* argv[])
 	  }
 	  *searchStackPointer++; // We have to walk from the end of the stack up to the top
 	                         // because stack is not always filled contiguously, leaving our watermark intact
-  } while ((uint32_t)searchStackPointer < STACK_STOP);
+  } while ((uint32_t)searchStackPointer < (stackStart + stackLength));
 
-  uint32_t searchUsagePercentage = ((STACK_STOP - (uint32_t)searchStackPointer) * 100)
-				  / (STACK_STOP - STACK_START);
-
-
+  uint32_t searchUsagePercentage = ((stackStart + stackLength - (uint32_t)searchStackPointer) * 100)
+				  / (stackLength);
 
   // Reset the stack
 
