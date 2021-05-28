@@ -51,6 +51,10 @@ ldscripts/sections.ld contains some stack size macros, eg `__Main_Stack_Size`
 
 Contains some heap data too.
 
+A nice reasource on these: https://community.arm.com/developer/ip-products/processors/b/processors-ip-blog/posts/decoding-the-startup-file-for-arm-cortex-m4
+
+https://engineering.stackexchange.com/questions/4013/defining-the-heap-and-stack-size-for-an-arm-cortex-m4-microcontroller
+
 ## Resources
 Talks about march memory tests: https://community.arm.com/developer/tools-software/tools/f/keil-forum/43140/how-to-execute-a-memory-test
 

@@ -37,13 +37,11 @@ int main (int argc, char* argv[])
   // Initialise the stack to 0xDEAD0000
   while (stack >= (unsigned int*) STACK_START)
   {
-	  *stack-- = 0xDEAD0000u; // in steps of uint32s, because of the type I think
+	  *stack-- = 0xDEAD0000u; // in steps of uint32s, which is the size of the pointer type
   }
 
   // Do something expensive
   cLovesRecursion(1); // random number dropped in stack at 0x20000222
-
-
 
   // Calculate stack usage
   __ASM volatile ("mov %0, sp" : "=r" (stackPointer) );
@@ -51,27 +49,18 @@ int main (int argc, char* argv[])
   uint32_t usagePercentage = ((STACK_STOP - stackPointer) * 100)
 		  / (STACK_STOP - STACK_START);
 
-  bool armStackPointerFound = false; // try a workaround for the random number posted to the stack
-  volatile uint32_t* searchStackPointer = (uint32_t*)STACK_START;
+  volatile uint64_t* searchStackPointer = (uint64_t*)STACK_START;
   do
   {
-	  if (*searchStackPointer != 0xDEAD0000)
+	  uint32_t lowWord = (*searchStackPointer) & 0xFFFFFFFF;
+	  uint32_t highWord = (*searchStackPointer >> 32) & 0xFFFFFFFF;
+
+      if (lowWord != 0xDEAD0000 && highWord != 0xDEAD0000)
 	  {
-		  if (armStackPointerFound)
-		  {
 			// Note that printf has quite a large stack allocation, and allocates to the heap too
 			// We would need to reset after using this.
 	        trace_printf("+ ADDR is %u, VALUE is %u\n", searchStackPointer, *searchStackPointer);
 		    break;
-		  }
-		  else
-		  {
-		    armStackPointerFound = true;
-		  }
-	  }
-	  else
-	  {
-		  armStackPointerFound = false;
 	  }
 	  *searchStackPointer++; // We have to walk from the end of the stack up to the top
 	                         // because stack is not always filled contiguously, leaving our watermark intact
