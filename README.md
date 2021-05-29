@@ -23,7 +23,7 @@ Better, use binary search to get a ballpark location, then walk to the final ans
 
 ## Issues
 ### Heap allocation
-If you allocate to the heap, the heap starts to grow from the top of the stack (the lowest address), 'upwards' towards the bottom of the stack (the highest address.
+If you allocate to the heap, the heap starts to grow from the top of the stack (the lowest address), 'upwards' towards the bottom of the stack (the highest address).
 
 This is an issue if you search from the top of the stack, but not if you binary search.
 
@@ -64,4 +64,32 @@ Some magic code that searches for free memory: https://os.mbed.com/questions/680
 
 ## Toolchain
 Setup toolchain following: https://eclipse-embed-cdt.github.io/
+
+## Stack Overflows
+Talks about Barr group analysis of Toyota unintended acceleration, and a custom exception handler: https://embeddedgurus.com/state-space/2014/02/are-we-shooting-ourselves-in-the-foot-with-stack-overflow/
+
+## Static Analysis
+Requires two parts:
+- Callgraph, can be generated using GNU cflow
+- Stack usage per function
+
+Then each callgraph path can have the stack contribution added up, and worst case stack usage can be calculated.
+
+Arm linker --callgraph flag, I'm not sure if this is ld, ld doesn't seem to have --callgraph. GCC has -fstack-usage for reporting function stack usage. In Eclipse, in C/C++ Build > Settings > GNU Arm Cross C++ Compiler > Miscellaneous, you can add -fstack-usage. This outputs a .su file next to each source file listing functions and their stack use.
+
+My recursive function used 8 bytes of the stack in my tests, this is what the output .su file reports. This doens't spot that the function is recursive of course, but we don't use recursion in embedded for this reason.
+
+Download GNU cflow, extract (tar -xvf), enter the directory and run $ ./configure && make && make install. Then test with cflow --version.
+
+In this dir: $ cflow src/main.cpp # shows the callgraph, including noting my evil recursive function.
+
+Can call $ cflow src/*.c system/cortexm/src/*.c, to get several files at once. Unclear how this would handle shared code.
+
+I suppose you could write a Python script to combine these outputs and estimate peak stack usage.
+
+Better, there's a -fcallgraph-info=su flag which creates a callgraph labelled with -fstack-usage data, written to main.ci.
+
+Sources:
+- Found initial commands: https://embeddedartistry.com/blog/2020/08/17/three-gcc-flags-for-analyzing-memory-usage/
+- Describes fcallgraph-info=su https://gcc.gnu.org/onlinedocs/gcc/Developer-Options.html
 
